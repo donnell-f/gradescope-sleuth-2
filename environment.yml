@@ -1,0 +1,17 @@
+name: grade_sleuth
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python
+  - pyyaml
+  - prompt_toolkit
+  - pygments
+  - tabulate
+  - selenium
+  - beautifulsoup4
+  - streamlit
+  - watchdog
+  - pip
+  - pip:
+    - webdriver_manager
