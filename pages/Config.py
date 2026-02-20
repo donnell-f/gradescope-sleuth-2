@@ -46,12 +46,18 @@ if (mode == "Load existing configuration"):
             if "late_due_date" in config_dict:
                 config_dict["late_due_date"] = datetime.strptime(config_dict["late_due_date"], "%Y-%m-%d %H:%M:%S")
 
-            # Load the config_dict data into their respective session states
+            # Load the config_dict data into their respective session states 
             st.session_state["saved_assn_name"] = config_dict["assignment_name"]
             st.session_state["saved_assn_path"] = config_dict["assignment_path"]
             st.session_state["saved_due_date"] = config_dict["due_date"]
             st.session_state["saved_has_late_due_date"] = config_dict.get("has_late_due_date", "No")
             st.session_state["saved_late_due_date"] = config_dict.get("late_due_date")
+            st.session_state["saved_has_network_settings"] = config_dict.get("has_network_settings", "No")
+            if config_dict.get("has_network_settings") == "Yes":
+                st.session_state["saved_course_id"] = config_dict.get("course_id")
+                st.session_state["saved_assignment_id"] = config_dict.get("assignment_id")
+                st.session_state["saved_remember_me_cookie"] = config_dict.get("remember_me_cookie")
+                st.session_state["saved_signed_token_cookie"] = config_dict.get("signed_token_cookie")
 
             if not st.session_state.get("setup_complete"):
                 st.session_state["setup_complete"] = True
@@ -64,10 +70,12 @@ if (mode == "Load existing configuration"):
 
 # If creating new configuration
 else:
+    # ----- Get config info ----- #
+
     # Enter name for current assignment
-    assn_name = st.text_input('Please enter a name for this assignment (no spaces " " or forward slashes "/")', value="", key="assn_name")
+    assn_name = st.text_input('Please enter a name for this assignment configuration (no spaces " ", nor forward slashes "/", nor backslashes "\\")', value="", key="assn_name")
     assn_exists = assn_name.strip() in past_configs and not (st.session_state["config_running"] or st.session_state["config_done"])
-    if " " in assn_name or "/" in assn_name:
+    if " " in assn_name or "/" in assn_name or "\\" in assn_name:
         st.error("Assignment name cannot contain spaces or forward slashes.")
     if assn_exists:
         st.error("There is already a saved assignment configuration with that name. Please delete it or choose a different name.")
@@ -82,20 +90,33 @@ else:
     has_late_due_date = st.radio("Does this assignment have a late due date?", ["No", "Yes"], key="has_late_due_date")
     if (has_late_due_date == "Yes"):
         late_due_date = st.datetime_input("Please enter the LATE due date for this assignment", value="now", key="late_due_date")
+    
+    # Network settings for downloading solutions
+    has_network_settings = st.radio("Do you want to configure network settings for downloading solutions?", ["No", "Yes"], key="has_network_settings")
+    if has_network_settings == "Yes":
+        course_id = st.number_input("Course ID", min_value=0, value=0, step=1, key="course_id")
+        assignment_id = st.number_input("Assignment ID", min_value=0, value=0, step=1, key="assignment_id")
+        remember_me_cookie = st.text_input("remember_me cookie", value="", key="remember_me_cookie")
+        signed_token_cookie = st.text_input("signed_token cookie", value="", key="signed_token_cookie")
+
+
+    # ----- Validate config info ----- #
 
     # `any_fields_invalid` is boolean a variable for start_config_button
-    assn_name_invalid = (" " in assn_name) or ("/" in assn_name) or assn_exists
+    assn_name_invalid = (" " in assn_name) or ("/" in assn_name) or ("\\" in assn_name) or assn_exists
     any_fields_invalid = assn_name.strip() == "" or assn_path.strip() == "" or due_date == None or assn_name_invalid
 
     is_running = st.session_state["config_running"]
 
     # Status message
     if is_running:
-        st.info("Configuration is running...")
+        st.info("Configuration is running... This may take 10 - 25 minutes, depending on your hardware.")
     elif st.session_state.get("config_was_cancelled"):
         st.warning("Configuration was cancelled.")
     elif st.session_state["config_done"]:
         st.success("Configuration complete! Proceed to any other page to use the app.")
+
+    # ----- Start configuration process ----- #
 
     # Both buttons always visible, enabled/disabled based on state
     col1, col2 = st.columns(2)
@@ -113,6 +134,12 @@ else:
             st.session_state["saved_due_date"] = st.session_state["due_date"]
             st.session_state["saved_has_late_due_date"] = st.session_state["has_late_due_date"]
             st.session_state["saved_late_due_date"] = st.session_state.get("late_due_date")
+            st.session_state["saved_has_network_settings"] = st.session_state["has_network_settings"]
+            if st.session_state["has_network_settings"] == "Yes":
+                st.session_state["saved_course_id"] = st.session_state["course_id"]
+                st.session_state["saved_assignment_id"] = st.session_state["assignment_id"]
+                st.session_state["saved_remember_me_cookie"] = st.session_state["remember_me_cookie"]
+                st.session_state["saved_signed_token_cookie"] = st.session_state["signed_token_cookie"]
 
             # Depositing this state into a variable since it is a `threading` event
             cancel_event = st.session_state["config_cancelled"]
@@ -127,6 +154,11 @@ else:
                         due_date=st.session_state["due_date"],
                         has_late_due_date=st.session_state["has_late_due_date"],
                         late_due_date=st.session_state.get("late_due_date"),
+                        has_network_settings=st.session_state["has_network_settings"],
+                        course_id=st.session_state.get("course_id"),
+                        assignment_id=st.session_state.get("assignment_id"),
+                        remember_me_cookie=st.session_state.get("remember_me_cookie"),
+                        signed_token_cookie=st.session_state.get("signed_token_cookie"),
                     )
                     if success:
                         # Show "config done" message on successful completion

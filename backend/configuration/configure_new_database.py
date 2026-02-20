@@ -7,6 +7,7 @@ import platform
 from datetime import datetime, timedelta
 import json
 
+from .configuration_helpers import make_config_json
 
 
 # Clear the config if configuration gets cancelled or something.
@@ -59,22 +60,9 @@ def get_code_files_in_folder(folder_path: Path) -> list[str]:
 
 
 
-def make_config_json(assn_name: str, assn_path: Path, due_date: datetime, has_late_due_date: bool, late_due_date: datetime=None):
-    config_dict = {}
-    config_dict["assignment_name"] = assn_name
-    config_dict["assignment_path"] = str(assn_path)
-    config_dict["due_date"] = due_date.strftime("%Y-%m-%d %H:%M:%S")
-    config_dict["has_late_due_date"] = has_late_due_date
-    if (has_late_due_date and late_due_date != None):
-        config_dict["late_due_date"] = late_due_date.strftime("%Y-%m-%d %H:%M:%S")
-
-    db_folder_path = Path(".") / "configs" / assn_name
-    with open(os.path.join(db_folder_path, f"{assn_name}.config.json"), "w") as fjson:
-        json.dump(config_dict, fjson, indent=4)
-
-
-
-def configure_new_database(cancel_event, assn_name: str, assn_path: Path, due_date: datetime, has_late_due_date: bool, late_due_date: datetime=None):
+def configure_new_database(cancel_event, assn_name: str, assn_path: Path, due_date: datetime, has_late_due_date: bool, late_due_date: datetime=None,
+                           has_network_settings: str="No", course_id: int=None, assignment_id: int=None,
+                           remember_me_cookie: str=None, signed_token_cookie: str=None):
     # Initialize the database
     conn, curs = initialize_db(assn_name)
 
@@ -168,7 +156,9 @@ def configure_new_database(cancel_event, assn_name: str, assn_path: Path, due_da
         return False
     
     # Save the settings to a JSON file so that they can be loaded in the future
-    make_config_json(assn_name=assn_name, assn_path=assn_path, due_date=due_date, has_late_due_date=has_late_due_date, late_due_date=late_due_date)
+    make_config_json(assn_name=assn_name, assn_path=assn_path, due_date=due_date, has_late_due_date=has_late_due_date, late_due_date=late_due_date,
+                     has_network_settings=has_network_settings, course_id=course_id, assignment_id=assignment_id,
+                     remember_me_cookie=remember_me_cookie, signed_token_cookie=signed_token_cookie)
 
     # Wrap up db stuff
     curs.close()

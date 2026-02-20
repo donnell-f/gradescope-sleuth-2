@@ -1,4 +1,4 @@
-# Gradescope Sleuth 2
+# 🫆 Gradescope Sleuth 2
 
 Gradescope Sleuth 2 is a tool that allows you to easily sleuth through all submissions for a Gradescope programming assignment. It is equipped with a powerful regex engine that can catch plagiarists at mach speed.
 
@@ -27,7 +27,7 @@ Then, configure Gradescope Sleuth by giving it the absolute path to a folder of 
 - Print student's entire submission history at once
     - Surprisingly hard to do on Gradescope itself
 - Store and reload configurations for past assignments
-- [COMING SOON] Can download historical submissions in background for extra data
+- Can download historical submissions in background for extra data
 - [COMING SOON] Print list of students whose first submission was right before the deadline
 
 ## Support / Compatibility

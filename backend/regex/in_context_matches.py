@@ -8,17 +8,17 @@ from .IndexLineMapper import IndexLineMapper
 
 # Get the in-context matches given a regex pattern and a file (and some other decorative data)
 def get_in_context_matches(
-        pattern: str,
-        file_name: str,
-        file_text: str,
-        student_name: str,
-        uin: str,
-        email: str,
-        match_number_enabled: bool,
-        match_number: int,
-        case_sensitive: bool,
-        context_radius: int
-    ):
+    pattern: str,
+    file_name: str,
+    file_text: str,
+    student_name: str,
+    uin: str,
+    email: str,
+    match_number_enabled: bool,
+    match_number: int,
+    case_sensitive: bool,
+    context_radius: int
+):
 
     # The string that will be returned
     output_string = ""
