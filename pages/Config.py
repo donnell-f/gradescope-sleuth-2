@@ -2,10 +2,13 @@ import streamlit as st
 from streamlit.runtime.scriptrunner import add_script_run_ctx
 import threading
 import time
+from datetime import datetime
 import os
 from pathlib import Path
+import json
 
-from backend.configure_database import configure_database
+from backend.configuration.configure_new_database import configure_new_database
+from backend.configuration.configuration_helpers import clear_config_dir
 
 st.title("Config Page")
 
@@ -21,7 +24,7 @@ st.write("Welcome to Gradescope Sleuth! This page will walk you through the Grad
 
 mode = st.radio("How would you like to configure Gradescope Sleuth?", ["Load existing configuration", "Create new"])
 
-past_configs = [f for f in os.listdir("./configs_archive") if os.path.isdir(os.path.join("./configs_archive", f))]
+past_configs = [f for f in os.listdir("./configs") if os.path.isdir(os.path.join("./configs", f))]
 
 # If loading previous configuration
 if (mode == "Load existing configuration"):
@@ -30,19 +33,43 @@ if (mode == "Load existing configuration"):
                  index=None,    # So that the placeholder shows
                  placeholder="Select a past config file...",
                  options=past_configs)
-    print(st.session_state["setup_complete"])
 
-    if past_config_select != None and not st.session_state.get("setup_complete"):
-        st.session_state["setup_complete"] = True
-        st.rerun()    # Rerun to make sure session_state updates
+    if past_config_select != None:
+        try:
+            # Load the config dict
+            past_config_path = Path(".") / "configs" / past_config_select / f"{past_config_select}.config.json"
+            with open(past_config_path, "r") as f:
+                config_dict = json.loads(f.read())
+
+            # Turn datetime strings into actual datetimes
+            config_dict["due_date"] = datetime.strptime(config_dict["due_date"], "%Y-%m-%d %H:%M:%S")
+            if "late_due_date" in config_dict:
+                config_dict["late_due_date"] = datetime.strptime(config_dict["late_due_date"], "%Y-%m-%d %H:%M:%S")
+
+            # Load the config_dict data into their respective session states
+            st.session_state["saved_assn_name"] = config_dict["assignment_name"]
+            st.session_state["saved_assn_path"] = config_dict["assignment_path"]
+            st.session_state["saved_due_date"] = config_dict["due_date"]
+            st.session_state["saved_has_late_due_date"] = config_dict.get("has_late_due_date", "No")
+            st.session_state["saved_late_due_date"] = config_dict.get("late_due_date")
+
+            if not st.session_state.get("setup_complete"):
+                st.session_state["setup_complete"] = True
+                st.rerun()
+
+            st.success("Configuration complete! Proceed to the Dashboard page to use the app.")
+        except Exception as e:
+            st.error(f"Error: could not load specified config. Details: {e}")
+    
 
 # If creating new configuration
 else:
     # Enter name for current assignment
     assn_name = st.text_input('Please enter a name for this assignment (no spaces " " or forward slashes "/")', value="", key="assn_name")
+    assn_exists = assn_name.strip() in past_configs and not (st.session_state["config_running"] or st.session_state["config_done"])
     if " " in assn_name or "/" in assn_name:
         st.error("Assignment name cannot contain spaces or forward slashes.")
-    if assn_name.strip() in past_configs:
+    if assn_exists:
         st.error("There is already a saved assignment configuration with that name. Please delete it or choose a different name.")
 
     # Enter path to assignment folder
@@ -57,7 +84,7 @@ else:
         late_due_date = st.datetime_input("Please enter the LATE due date for this assignment", value="now", key="late_due_date")
 
     # `any_fields_invalid` is boolean a variable for start_config_button
-    assn_name_invalid = (" " in assn_name) or ("/" in assn_name) or (assn_name.strip() in past_configs)
+    assn_name_invalid = (" " in assn_name) or ("/" in assn_name) or assn_exists
     any_fields_invalid = assn_name.strip() == "" or assn_path.strip() == "" or due_date == None or assn_name_invalid
 
     is_running = st.session_state["config_running"]
@@ -80,6 +107,7 @@ else:
             st.session_state["config_was_cancelled"] = False
 
             # Save config values to persistent (non-widget) keys
+            # Streamlit is really weird about session state...
             st.session_state["saved_assn_name"] = st.session_state["assn_name"]
             st.session_state["saved_assn_path"] = st.session_state["assn_path"]
             st.session_state["saved_due_date"] = st.session_state["due_date"]
@@ -92,7 +120,7 @@ else:
             # Run the database configuration function in this thread
             def run_config():
                 try:
-                    success = configure_database(
+                    success = configure_new_database(
                         cancel_event,
                         assn_name=st.session_state["assn_name"].strip(),    # Strip it
                         assn_path=Path(st.session_state["assn_path"].strip()),    # Strip it and Path() it
@@ -101,8 +129,12 @@ else:
                         late_due_date=st.session_state.get("late_due_date"),
                     )
                     if success:
+                        # Show "config done" message on successful completion
                         st.session_state["config_done"] = True
                         st.session_state["setup_complete"] = True
+                    else:
+                        # Clear the config directory if the user cancelled configuration
+                        clear_config_dir(assn_name.strip())
                 finally:
                     st.session_state["config_running"] = False
 

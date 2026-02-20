@@ -1,4 +1,2 @@
-config/
-configs_archive/
 __pycache__/
 backend/__pycache__/
