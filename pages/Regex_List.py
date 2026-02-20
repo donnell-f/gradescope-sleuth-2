@@ -5,7 +5,6 @@ from backend.regex.regex_tools import regex_matching_submissions
 
 st.title("Regex List Submissions")
 
-st.write("### Regex Submission Finder")
 st.write("Enter a regex pattern and see a table of all submissions with files matching the pattern.")
 regex_pattern = st.text_input("Regex Pattern")
 

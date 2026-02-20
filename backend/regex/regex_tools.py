@@ -35,8 +35,7 @@ def regex_matching_files(regex_pattern: str, assn_name: str):
     curs = conn.cursor()
 
     curs.execute("""
-        SELECT st.uin, st.name, st.email, s.submission_id,
-               s.created_at, s.score, s.submission_num, f.file_name, f.file_text
+        SELECT st.uin, st.name, st.email, s.submission_id, s.created_at, s.score, s.submission_num, f.file_name, f.file_text
         FROM files f
         JOIN submissions s ON f.submission_id = s.submission_id
         JOIN students st ON s.uin = st.uin

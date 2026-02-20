@@ -21,31 +21,12 @@ def initialize_db(assn_name: str):
     conn = sqlite3.connect(os.path.join(db_folder_path, f"{assn_name}.db"))
     curs = conn.cursor()
 
-    # Initialize the database
-    curs.executescript("""
-PRAGMA foreign_keys = ON;
-
-CREATE TABLE students (
-    uin INTEGER PRIMARY KEY,
-    name TEXT,
-    email TEXT
-);
-
-CREATE TABLE submissions (
-    submission_id INTEGER PRIMARY KEY,
-    created_at TEXT,
-    score REAL,
-    submission_num INTEGER,
-    uin INTEGER REFERENCES students(uin)
-);
-
-CREATE TABLE files (
-    file_id INTEGER PRIMARY KEY,
-    submission_id INTEGER REFERENCES submissions(submission_id),
-    file_name TEXT,
-    file_text TEXT
-);
-    """)
+    # Initialize the database using the db_schema.sql script
+    new_db_script = None
+    new_db_script_path = Path(".") / "db_schema.sql"
+    with open(new_db_script_path, "r") as f_sql:
+        new_db_script = f_sql.read()
+    curs.executescript(new_db_script)
 
     # Return the connection and cursor objects
     return (conn, curs)

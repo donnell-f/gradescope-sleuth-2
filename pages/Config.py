@@ -57,7 +57,7 @@ if (mode == "Load existing configuration"):
                 st.session_state["setup_complete"] = True
                 st.rerun()
 
-            st.success("Configuration complete! Proceed to the Dashboard page to use the app.")
+            st.success("Configuration complete! Proceed to any other page to use the app.")
         except Exception as e:
             st.error(f"Error: could not load specified config. Details: {e}")
     
@@ -95,7 +95,7 @@ else:
     elif st.session_state.get("config_was_cancelled"):
         st.warning("Configuration was cancelled.")
     elif st.session_state["config_done"]:
-        st.success("Configuration complete! Proceed to the Dashboard page to use the app.")
+        st.success("Configuration complete! Proceed to any other page to use the app.")
 
     # Both buttons always visible, enabled/disabled based on state
     col1, col2 = st.columns(2)
