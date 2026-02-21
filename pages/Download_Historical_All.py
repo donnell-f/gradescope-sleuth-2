@@ -23,6 +23,8 @@ if "dl_done" not in st.session_state:
     st.session_state["dl_done"] = False
 if "dl_error" not in st.session_state:
     st.session_state["dl_error"] = None
+if "dl_current" not in st.session_state:
+    st.session_state["dl_current"] = None
 
 assn_name = st.session_state.get("saved_assn_name")
 
@@ -40,7 +42,11 @@ else:
 
     # Status messages
     if is_running:
-        st.info("Downloading in progress...")
+        current = st.session_state.get("dl_current")
+        if current:
+            st.info(f"Downloading submission **{current[0]}** from **{current[1]}**...")
+        else:
+            st.info("Downloading in progress...")
     elif st.session_state.get("dl_was_cancelled"):
         st.warning("Downloading was stopped.")
     elif st.session_state.get("dl_error"):
@@ -58,6 +64,7 @@ else:
             st.session_state["dl_done"] = False
             st.session_state["dl_error"] = None
             st.session_state["dl_was_cancelled"] = False
+            st.session_state["dl_current"] = None
 
             # Save this in here for convenience
             cancel_event = st.session_state["dl_cancelled"]
@@ -67,9 +74,11 @@ else:
             def run_downloads():
                 try:
                     undownloaded = get_undownloaded_submission_ids(assn_name)
-                    for sub_id in undownloaded:
+                    for sub_id, student_name in undownloaded:
                         if cancel_event.is_set():
                             return
+
+                        st.session_state["dl_current"] = (sub_id, student_name)
 
                         # Downloads the submission .zip from Gradescope and
                         # returns it as a dictionary mapping file names -> file content.
@@ -87,6 +96,7 @@ else:
                 except Exception as e:
                     st.session_state["dl_error"] = str(e)
                 finally:
+                    st.session_state["dl_current"] = None
                     st.session_state["dl_running"] = False
 
             thread = threading.Thread(target=run_downloads, daemon=True)

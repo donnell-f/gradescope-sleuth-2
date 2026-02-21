@@ -33,18 +33,20 @@ def get_undownloaded_submission_ids(assn_name: str):
     curs = conn.cursor()
 
     curs.execute("""
-        SELECT s.submission_id
+        SELECT s.submission_id, st.name
         FROM submissions s
+        JOIN students st ON s.uin = st.uin
         LEFT JOIN files f ON s.submission_id = f.submission_id
         WHERE f.file_id IS NULL
+        ORDER BY st.name, s.submission_num
     """)
 
-    ids = [row[0] for row in curs.fetchall()]
+    rows = curs.fetchall()
 
     curs.close()
     conn.close()
 
-    return ids
+    return rows
 
 
 def get_submissions_with_download_status_by_uin(assn_name: str, uin: int):
