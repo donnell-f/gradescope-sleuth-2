@@ -2,7 +2,7 @@
 
 Gradescope Sleuth 2 is a tool that allows you to easily sleuth through all submissions for a Gradescope programming assignment. It is equipped with a powerful regex engine that can catch plagiarists at mach speed.
 
-## Getting Started
+## Starting Gradescope Sleuth 2
 
 You will need to have Anaconda installed in order to run Gradescope Sleuth.
 
@@ -18,6 +18,15 @@ Then, run Gradescope Sleuth using Streamlit
 - `streamlit run app.py`
 
 Then, configure Gradescope Sleuth by giving it the absolute path to a folder of downloaded submissions.
+
+## Configuration
+
+I would like to clarify a few things about configuration
+
+1. The configuration name will be used to save a new configuration to the `configs` folder.
+2. The "Course ID" and "Assignment ID" number inputs may be confusing. You can find these by going to a Gradescope assignment's homepage and looking at the URL. You should be able to easily find the course and assignment IDs in there. In general, Gradescope reveals a lot of information in its URLs.
+3. Loading an existing configuration should be almost instant.
+4. Creating a new configuration may take a **long** time. It depends on your computer.
 
 ## Features
 
