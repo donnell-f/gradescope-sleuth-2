@@ -1,2 +1,0 @@
-string_calc
-/Users/donnellfulwiler/Documents/School/CSCE120_TA/hw_string_calc_submissions
