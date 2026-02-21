@@ -1,7 +1,7 @@
 import streamlit as st
 from pathlib import Path
 
-from backend.regex.regex_tools import regex_matching_submissions, regex_matching_files
+from backend.regex.regex_tools import regex_matching_files_distinct_submissions
 from backend.regex.in_context_matches import get_in_context_matches
 
 st.title("Regex In-Context Matches (All Submissions)")
@@ -12,7 +12,7 @@ regex_pattern = st.text_input("Regex Pattern")
 if regex_pattern:
     assn_name = st.session_state.get("saved_assn_name")
     if assn_name:
-        matching_files_info = regex_matching_files(regex_pattern, assn_name.strip())
+        matching_files_info = regex_matching_files_distinct_submissions(regex_pattern, assn_name.strip())
         if matching_files_info:
             all_in_context_matches = ""
 
@@ -24,15 +24,13 @@ if regex_pattern:
                 
                 f_in_context_matches = get_in_context_matches(
                     pattern=regex_pattern,
+                    submission_id=s_sub_id,
                     file_name=f_name,
                     file_text=f_text,
                     student_name=st_name,
                     uin=st_uin,
                     email=st_email,
-                    match_number_enabled=False,    # Maybe use these options later?
-                    match_number=match_number,
-                    case_sensitive=True,
-                    context_radius=1
+                    case_sensitive=True
                 )
 
                 match_number += 1

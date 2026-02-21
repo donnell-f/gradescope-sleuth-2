@@ -9,15 +9,13 @@ from .IndexLineMapper import IndexLineMapper
 # Get the in-context matches given a regex pattern and a file (and some other decorative data)
 def get_in_context_matches(
     pattern: str,
+    submission_id: int,
     file_name: str,
     file_text: str,
     student_name: str,
     uin: str,
     email: str,
-    match_number_enabled: bool,
-    match_number: int,
-    case_sensitive: bool,
-    context_radius: int
+    case_sensitive: bool
 ):
 
     # The string that will be returned
@@ -27,12 +25,7 @@ def get_in_context_matches(
     ilm = IndexLineMapper(file_text)
 
     # Format header
-    student_info = f"{student_name}, {uin}, {email}"
-    matches_header = None
-    if match_number_enabled:
-        matches_header = f"Match #{match_number}  -  {student_info}  -  {file_name}"
-    else:
-        matches_header = f"{student_info}  -  {file_name}"
+    matches_header = f"Submission {submission_id}  -  {student_name}, {uin}, {email}  -  {file_name}"
     line_ext_length = len(matches_header) + len(str(ilm.getMaxLineNum())) + 3
 
 
@@ -49,7 +42,7 @@ def get_in_context_matches(
         firstline = ilm.stringIndexToLineNum(m.start())
         lastline = ilm.stringIndexToLineNum(m.end() - 1)
         all_line_nums = [lnum for lnum in range(firstline, lastline + 1)]
-        matches_with_context.append(ilm.getNumberedLinesWithContext(all_line_nums, context_radius=context_radius))
+        matches_with_context.append(ilm.getNumberedLinesWithContext(all_line_nums, context_radius=1))
     
     # Only print header if there were no matches
     if (matches_with_context == []):
