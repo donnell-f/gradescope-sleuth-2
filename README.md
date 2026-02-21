@@ -33,3 +33,8 @@ Then, configure Gradescope Sleuth by giving it the absolute path to a folder of 
 ## Support / Compatibility
 
 Supports any Gradescope programming assignment. Completely cross platform.
+
+## Notes
+
+- All regex is case sensitive, for now.
+- Ask me if you would like any new features.
